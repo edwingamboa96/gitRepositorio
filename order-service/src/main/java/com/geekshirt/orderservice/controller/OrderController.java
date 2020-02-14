@@ -46,16 +46,16 @@ public class OrderController {
 	
 	@GetMapping(value ="order/{orderId}" )
 	public ResponseEntity<OrderResponse>getByID(@PathVariable String orderId){
-		OrderResponse order2=new OrderResponse();
-		order2.setAccountId("432453");
-		order2.setOrderId(orderId);
-		order2.setStatus("OK");
-		order2.setTotalAmount(3.6);
-		order2.setTotalAmount(5.3);
-		order2.setTotalTax(58.3);
-		order2.setTransactionDate(new Date());		
+		OrderResponse order4=new OrderResponse();
+		order4.setAccountId("432453");
+		order4.setOrderId(orderId);
+		order4.setStatus("kmlkkl");
+		order4.setTotalAmount(3.6);
+		order4.setTotalAmount(5.3);
+		order4.setTotalTax(58.3);
+		order4.setTransactionDate(new Date());		
 		
-		return  new ResponseEntity<>(order2,HttpStatus.CREATED);
+		return  new ResponseEntity<>(order4,HttpStatus.OK);
 		
 		
 	}
