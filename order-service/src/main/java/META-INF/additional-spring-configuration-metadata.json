@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "customerservice.url",
+    "type": "java.lang.String",
+    "description": "A description for 'customerservice.url'"
+  },
+  {
+    "name": "lombok.anyConstructor.addConstructorProperties",
+    "type": "java.lang.String",
+    "description": "A description for 'lombok.anyConstructor.addConstructorProperties'"
+  }
+]}
