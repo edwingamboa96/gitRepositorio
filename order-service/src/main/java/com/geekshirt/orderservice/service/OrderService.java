@@ -8,42 +8,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.geekshirt.orderservice.client.CustomerServiceClient;
+import com.geekshirt.orderservice.dao.ImplOrder;
+import com.geekshirt.orderservice.dto.AccountDto;
 import com.geekshirt.orderservice.dto.OrderRequest;
-import com.geekshirt.orderservice.entities.AccountDto;
 import com.geekshirt.orderservice.entities.Order;
 import com.geekshirt.orderservice.exception.AccountNotFoundException;
 import com.geekshirt.orderservice.util.ExceptionMessagesEnum;
+import com.geekshirt.orderservice.util.OrderStatus;
 import com.geekshirt.orderservice.util.OrderValidator;
-
 
 @Service
 public class OrderService {
 	@Autowired
-    private CustomerServiceClient customerClient;
+	private CustomerServiceClient customerClient;
 
-	
-	
+	@Autowired
+	private ImplOrder implOrder;
+
 	public Order createOrder(OrderRequest orderRequest) {
 		OrderValidator.validateOrder(orderRequest);
-		//AccountDto accountDto=customorClient.findAccountById(orderRequest.getAccountId());
-		
-		 AccountDto account = customerClient.findAccountById(orderRequest.getAccountId())
-                 .orElseThrow(() -> new AccountNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
-		
-		//AccountDto dummyAccount=customorClient.crateDummyAccount();
-		
-		//dummyAccount=customorClient.crateAccount(dummyAccount);
-		Order response = new Order();
-		response.setAccountId("");
-		response.setOrderId(orderRequest.getAccountId());
-		response.setStatus("Pending");
-		response.setTotalAmount(5.6);
-		response.setTotalAmount(56.69);
-		response.setTotalTax(5.6);
-		response.setTransactionDate(new Date());
-
-		return response;
-
+		AccountDto account = customerClient.findAccountById(orderRequest.getAccountId())
+				.orElseThrow(() -> new AccountNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));		
+		Order newOrder = new Order();
+		return implOrder.save(newOrder);
 	}
 
 	public List<Order> findAllOrders() {
@@ -51,7 +38,7 @@ public class OrderService {
 		Order response = new Order();
 		response.setAccountId("696396336");
 		response.setOrderId("123456");
-		response.setStatus("Pending");
+		response.setStatus(OrderStatus.PENDING);
 		response.setTotalAmount(5.6);
 		response.setTotalAmount(56.69);
 		response.setTotalTax(5.6);
@@ -60,7 +47,7 @@ public class OrderService {
 		Order order2 = new Order();
 		order2.setAccountId("54156647");
 		order2.setOrderId("44444");
-		order2.setStatus("OK");
+		order2.setStatus(OrderStatus.SHIPPED);
 		order2.setTotalAmount(3.6);
 		order2.setTotalAmount(5.3);
 		order2.setTotalTax(58.3);
@@ -77,7 +64,7 @@ public class OrderService {
 		Order response = new Order();
 		response.setAccountId("432453");
 		response.setOrderId(orderId);
-		response.setStatus("OK");
+		response.setStatus(OrderStatus.SHIPPED);
 		response.setTotalAmount(3.6);
 		response.setTotalAmount(5.3);
 		response.setTotalTax(58.3);

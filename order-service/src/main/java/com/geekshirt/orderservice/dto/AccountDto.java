@@ -1,4 +1,4 @@
-package com.geekshirt.orderservice.entities;
+package com.geekshirt.orderservice.dto;
 
 import com.geekshirt.orderservice.util.AccountStatus;
 

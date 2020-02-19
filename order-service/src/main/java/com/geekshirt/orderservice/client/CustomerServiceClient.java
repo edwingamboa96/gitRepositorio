@@ -10,10 +10,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.geekshirt.orderservice.config.OrderServiceConfig;
-import com.geekshirt.orderservice.entities.AccountDto;
-import com.geekshirt.orderservice.entities.AddressDto;
-import com.geekshirt.orderservice.entities.CreditCardDto;
-import com.geekshirt.orderservice.entities.CustomerDto;
+import com.geekshirt.orderservice.dto.AccountDto;
+import com.geekshirt.orderservice.dto.AddressDto;
+import com.geekshirt.orderservice.dto.CreditCardDto;
+import com.geekshirt.orderservice.dto.CustomerDto;
 import com.geekshirt.orderservice.util.AccountStatus;
 
 @Component
