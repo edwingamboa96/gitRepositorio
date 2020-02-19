@@ -7,23 +7,32 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.geekshirt.orderservice.client.CustomorServiceClient;
+import com.geekshirt.orderservice.client.CustomerServiceClient;
 import com.geekshirt.orderservice.dto.OrderRequest;
 import com.geekshirt.orderservice.entities.AccountDto;
 import com.geekshirt.orderservice.entities.Order;
+import com.geekshirt.orderservice.exception.AccountNotFoundException;
+import com.geekshirt.orderservice.util.ExceptionMessagesEnum;
+import com.geekshirt.orderservice.util.OrderValidator;
 
 
 @Service
 public class OrderService {
-	
 	@Autowired
-	private CustomorServiceClient customorClient;
+    private CustomerServiceClient customerClient;
+
+	
+	
 	public Order createOrder(OrderRequest orderRequest) {
-		AccountDto accountDto=customorClient.findAccountById(orderRequest.getAccountId());
+		OrderValidator.validateOrder(orderRequest);
+		//AccountDto accountDto=customorClient.findAccountById(orderRequest.getAccountId());
 		
-		AccountDto dummyAccount=customorClient.crateDummyAccount();
+		 AccountDto account = customerClient.findAccountById(orderRequest.getAccountId())
+                 .orElseThrow(() -> new AccountNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
 		
-		dummyAccount=customorClient.crateAccount(dummyAccount);
+		//AccountDto dummyAccount=customorClient.crateDummyAccount();
+		
+		//dummyAccount=customorClient.crateAccount(dummyAccount);
 		Order response = new Order();
 		response.setAccountId("");
 		response.setOrderId(orderRequest.getAccountId());

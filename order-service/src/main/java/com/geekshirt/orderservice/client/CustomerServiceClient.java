@@ -1,8 +1,12 @@
 package com.geekshirt.orderservice.client;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.geekshirt.orderservice.config.OrderServiceConfig;
@@ -13,21 +17,32 @@ import com.geekshirt.orderservice.entities.CustomerDto;
 import com.geekshirt.orderservice.util.AccountStatus;
 
 @Component
-public class CustomorServiceClient {
+public class CustomerServiceClient {
 
 	@Autowired
 	private OrderServiceConfig config;
 	private RestTemplate restTemplate;
 
-	public CustomorServiceClient(RestTemplateBuilder builder) {
+	public CustomerServiceClient(RestTemplateBuilder builder) {
 
 		this.restTemplate = builder.build();
 	}
+	
+	
+	 public Optional<AccountDto> findAccountById(String accountId) {
+	        Optional<AccountDto> result = Optional.empty();
+	        try {
+	            result = Optional.ofNullable(restTemplate.getForObject(config.getCustomerServiceUrl() + "/{id}", AccountDto.class, accountId));
+	        }
+	        catch (HttpClientErrorException ex)   {
+	            if (ex.getStatusCode() != HttpStatus.NOT_FOUND) {
+	                throw ex;
+	            }
+	        }
+	        return result;
+	    }
 
-	public AccountDto findAccountById(String accountId) {
-		AccountDto accountDto = restTemplate.getForObject(config.getCustomerServiceUrl() + "/{id}",AccountDto.class, accountId);
-		return accountDto;
-	}
+	
 	
 	
 	
