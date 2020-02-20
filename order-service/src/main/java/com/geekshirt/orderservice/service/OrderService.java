@@ -3,6 +3,9 @@ package com.geekshirt.orderservice.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,7 @@ import com.geekshirt.orderservice.dao.ImplOrder;
 import com.geekshirt.orderservice.dto.AccountDto;
 import com.geekshirt.orderservice.dto.OrderRequest;
 import com.geekshirt.orderservice.entities.Order;
+import com.geekshirt.orderservice.entities.OrderDetail;
 import com.geekshirt.orderservice.exception.AccountNotFoundException;
 import com.geekshirt.orderservice.util.ExceptionMessagesEnum;
 import com.geekshirt.orderservice.util.OrderStatus;
@@ -31,6 +35,19 @@ public class OrderService {
 				.orElseThrow(() -> new AccountNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));		
 		Order newOrder = new Order();
 		return implOrder.save(newOrder);
+	}
+	
+	private Order initOrder(OrderRequest orderRequest) {
+		Order orderObj = new Order();
+		orderObj.setAccountId(UUID.randomUUID().toString());
+		orderObj.setStatus(OrderStatus.PENDING);
+		List<OrderDetail>orderDetails=orderRequest.getItems().stream().map(order->OrderDetail.builder()
+				.price(order.getPrice())
+				.quanty(order.getQuantity())
+				.upc(order.getUpc()).tax(order.getPrice()*order.getQuantity()*.16).order(orderObj).build()).collect(Collectors.toList());
+		
+		orderObj.setDetails(orderDetails);
+		return orderObj;
 	}
 
 	public List<Order> findAllOrders() {
