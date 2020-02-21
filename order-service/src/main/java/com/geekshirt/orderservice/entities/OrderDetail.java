@@ -31,8 +31,8 @@ public class OrderDetail {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "QUANTY")
-	private Integer quanty;
+	@Column(name = "QUANTITY")
+	private Integer quantity;
 
 	@Column(name = "PRICE")
 	private Double price;
@@ -42,7 +42,6 @@ public class OrderDetail {
 
 	@Column(name = "UPC")
 	private String upc;
-
 	@ManyToOne(cascade = CascadeType.ALL)
 	private Order order;
 }

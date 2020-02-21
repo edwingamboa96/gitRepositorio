@@ -1,11 +1,11 @@
 package com.geekshirt.orderservice.service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +17,8 @@ import com.geekshirt.orderservice.dto.OrderRequest;
 import com.geekshirt.orderservice.entities.Order;
 import com.geekshirt.orderservice.entities.OrderDetail;
 import com.geekshirt.orderservice.exception.AccountNotFoundException;
+import com.geekshirt.orderservice.exception.OrderNotFoundException;
+import com.geekshirt.orderservice.util.ConstantsCustom;
 import com.geekshirt.orderservice.util.ExceptionMessagesEnum;
 import com.geekshirt.orderservice.util.OrderStatus;
 import com.geekshirt.orderservice.util.OrderValidator;
@@ -28,65 +30,51 @@ public class OrderService {
 
 	@Autowired
 	private ImplOrder implOrder;
-
+     
+	@Transactional
 	public Order createOrder(OrderRequest orderRequest) {
 		OrderValidator.validateOrder(orderRequest);
 		AccountDto account = customerClient.findAccountById(orderRequest.getAccountId())
-				.orElseThrow(() -> new AccountNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));		
-		Order newOrder = new Order();
+				.orElseThrow(() -> new AccountNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
+		Order newOrder = initOrder(orderRequest);
 		return implOrder.save(newOrder);
 	}
-	
+
 	private Order initOrder(OrderRequest orderRequest) {
 		Order orderObj = new Order();
-		orderObj.setAccountId(UUID.randomUUID().toString());
+		orderObj.setOrderId(UUID.randomUUID().toString());
+		orderObj.setAccountId(orderRequest.getAccountId());
 		orderObj.setStatus(OrderStatus.PENDING);
-		List<OrderDetail>orderDetails=orderRequest.getItems().stream().map(order->OrderDetail.builder()
-				.price(order.getPrice())
-				.quanty(order.getQuantity())
-				.upc(order.getUpc()).tax(order.getPrice()*order.getQuantity()*.16).order(orderObj).build()).collect(Collectors.toList());
-		
+		List<OrderDetail> orderDetails = orderRequest.getItems().stream()
+				.map(order -> OrderDetail.builder()
+						.price(order.getPrice())
+						.quantity(order.getQuantity())
+						.upc(order.getUpc())
+						.tax(order.getPrice() * order.getQuantity() * ConstantsCustom.TAX_IMPORTE)
+						.order(orderObj).build())
+				.collect(Collectors.toList());
+
 		orderObj.setDetails(orderDetails);
+		orderObj.setTotalAmount(orderDetails.stream().mapToDouble(OrderDetail::getPrice).sum());
+		orderObj.setTotalTax(orderObj.getTotalAmount() *ConstantsCustom.TAX_IMPORTE);
+		orderObj.setTransactionDate(new Date());
 		return orderObj;
 	}
 
 	public List<Order> findAllOrders() {
-		List<Order> orderList = new ArrayList<Order>();
-		Order response = new Order();
-		response.setAccountId("696396336");
-		response.setOrderId("123456");
-		response.setStatus(OrderStatus.PENDING);
-		response.setTotalAmount(5.6);
-		response.setTotalAmount(56.69);
-		response.setTotalTax(5.6);
-		response.setTransactionDate(new Date());
-
-		Order order2 = new Order();
-		order2.setAccountId("54156647");
-		order2.setOrderId("44444");
-		order2.setStatus(OrderStatus.SHIPPED);
-		order2.setTotalAmount(3.6);
-		order2.setTotalAmount(5.3);
-		order2.setTotalTax(58.3);
-		order2.setTransactionDate(new Date());
-
-		orderList.add(order2);
-		orderList.add(response);
-
-		return orderList;
+		return implOrder.findtAll();
 
 	}
 
 	public Order findOrderById(String orderId) {
-		Order response = new Order();
-		response.setAccountId("432453");
-		response.setOrderId(orderId);
-		response.setStatus(OrderStatus.SHIPPED);
-		response.setTotalAmount(3.6);
-		response.setTotalAmount(5.3);
-		response.setTotalTax(58.3);
-		response.setTransactionDate(new Date());
-		return response;
+		return implOrder.findByOrderId(orderId)
+				.orElseThrow(() -> new OrderNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
+
+	}
+
+	public Order findById(Long orderId) {
+		return implOrder.findById(orderId)
+				.orElseThrow(() -> new OrderNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
 
 	}
 

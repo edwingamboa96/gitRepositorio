@@ -40,8 +40,15 @@ public class OrderController {
 	@ApiOperation(value = "Retrive an order based on ID ", notes = "this operation return an order using its Id")
 	@GetMapping(value = "order/{orderId}")
 	public ResponseEntity<OrderResponse> getByID(@PathVariable String orderId) {
-	   Order order=orderService.findOrderById(orderId); 
-	   order.setOrderId(orderId);
+	   Order order=orderService.findOrderById(orderId); 	  
+	   return new ResponseEntity<>(converter.convertEntityToDto(order), HttpStatus.OK);
+
+	}
+	
+	@ApiOperation(value = "Retrive an order based on ID ", notes = "this operation return an order using its Id")
+	@GetMapping(value = "order/generated/{orderId}")
+	public ResponseEntity<OrderResponse> fiendByGeneratedId(@PathVariable long orderId) {
+	   Order order=orderService.findById(orderId); 	  
 	   return new ResponseEntity<>(converter.convertEntityToDto(order), HttpStatus.OK);
 
 	}
