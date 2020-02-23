@@ -1,7 +1,5 @@
 package com.geekshirt.orderservice.dto;
 
-import com.geekshirt.orderservice.entities.Order;
-
 import lombok.Data;
 
 @Data
@@ -12,7 +10,7 @@ public class OrderDetailResponse {
 	private double price;			
 	private double tax;
 	private String upc;
-	private Order order;
+	
 	
 
 }
