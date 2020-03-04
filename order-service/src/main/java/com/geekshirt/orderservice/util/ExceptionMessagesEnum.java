@@ -2,6 +2,7 @@ package com.geekshirt.orderservice.util;
 
 public enum ExceptionMessagesEnum {
     ACCOUNT_NOT_FOUND("Account Not Found"),
+    ORDERS_NOT_FOUND("Orders Not Found"),
     INCORRECT_REQUEST_EMPTY_ITEMS_ORDER("Empty Items are not allowed in the Order");
 
     ExceptionMessagesEnum(String msg) {

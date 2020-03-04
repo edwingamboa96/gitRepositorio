@@ -2,80 +2,111 @@ package com.geekshirt.orderservice.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.geekshirt.orderservice.client.CustomerServiceClient;
-import com.geekshirt.orderservice.dao.ImplOrder;
 import com.geekshirt.orderservice.dto.AccountDto;
+import com.geekshirt.orderservice.dto.Confirmation;
 import com.geekshirt.orderservice.dto.OrderRequest;
 import com.geekshirt.orderservice.entities.Order;
 import com.geekshirt.orderservice.entities.OrderDetail;
 import com.geekshirt.orderservice.exception.AccountNotFoundException;
 import com.geekshirt.orderservice.exception.OrderNotFoundException;
-import com.geekshirt.orderservice.util.ConstantsCustom;
+import com.geekshirt.orderservice.exception.PaymentNotAcceptedException;
+import com.geekshirt.orderservice.repositories.OrderRepository;
+import com.geekshirt.orderservice.util.Constants;
 import com.geekshirt.orderservice.util.ExceptionMessagesEnum;
+import com.geekshirt.orderservice.util.OrderPaymentStatus;
 import com.geekshirt.orderservice.util.OrderStatus;
 import com.geekshirt.orderservice.util.OrderValidator;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OrderService {
 	@Autowired
-	private CustomerServiceClient customerClient;
+    private CustomerServiceClient customerClient;
 
-	@Autowired
-	private ImplOrder implOrder;
-     
-	@Transactional
-	public Order createOrder(OrderRequest orderRequest) {
-		OrderValidator.validateOrder(orderRequest);
-		AccountDto account = customerClient.findAccountById(orderRequest.getAccountId())
-				.orElseThrow(() -> new AccountNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
-		Order newOrder = initOrder(orderRequest);
-		return implOrder.save(newOrder);
-	}
+    @Autowired
+    private OrderRepository orderRepository;
 
-	private Order initOrder(OrderRequest orderRequest) {
-		Order orderObj = new Order();
-		orderObj.setOrderId(UUID.randomUUID().toString());
-		orderObj.setAccountId(orderRequest.getAccountId());
-		orderObj.setStatus(OrderStatus.PENDING);
-		List<OrderDetail> orderDetails = orderRequest.getItems().stream()
-				.map(order -> OrderDetail.builder()
-						.price(order.getPrice())
-						.quantity(order.getQuantity())
-						.upc(order.getUpc())
-						.tax(order.getPrice() * order.getQuantity() * ConstantsCustom.TAX_IMPORTE)
-						.order(orderObj).build())
-				.collect(Collectors.toList());
+    @Autowired
+    private PaymentProcessorService paymentService;
 
-		orderObj.setDetails(orderDetails);
-		orderObj.setTotalAmount(orderDetails.stream().mapToDouble(OrderDetail::getPrice).sum());
-		orderObj.setTotalTax(orderObj.getTotalAmount() *ConstantsCustom.TAX_IMPORTE);
-		orderObj.setTransactionDate(new Date());
-		return orderObj;
-	}
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
+    public Order createOrder(OrderRequest orderRequest) throws PaymentNotAcceptedException {
+        OrderValidator.validateOrder(orderRequest);
 
-	public List<Order> findAllOrders() {
-		return implOrder.findtAll();
+        AccountDto account = customerClient.findAccount(orderRequest.getAccountId())
+                                        .orElseThrow(() -> new AccountNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
+        Order newOrder = initOrder(orderRequest);
 
-	}
+        Confirmation confirmation = paymentService.processPayment(newOrder, account);
 
-	public Order findOrderById(String orderId) {
-		return implOrder.findByOrderId(orderId)
-				.orElseThrow(() -> new OrderNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
+        log.info("Payment Confirmation: {}", confirmation);
 
-	}
+        String paymentStatus = confirmation.getTransactionStatus();
+        newOrder.setPaymentStatus(OrderPaymentStatus.valueOf(paymentStatus));
 
-	public Order findById(Long orderId) {
-		return implOrder.findById(orderId)
-				.orElseThrow(() -> new OrderNotFoundException(ExceptionMessagesEnum.ACCOUNT_NOT_FOUND.getValue()));
+        if (paymentStatus.equals(OrderPaymentStatus.DENIED.name())) {
+            newOrder.setStatus(OrderStatus.NA);
+            orderRepository.save(newOrder);
+            throw new PaymentNotAcceptedException("The Payment added to your account was not accepted, please verify.");
+        }
 
-	}
+        return orderRepository.save(newOrder);
+    }
 
+    private Order initOrder(OrderRequest orderRequest) {
+        Order orderObj = new Order();
+        orderObj.setOrderId(UUID.randomUUID().toString());
+        orderObj.setAccountId(orderRequest.getAccountId());
+        orderObj.setStatus(OrderStatus.PENDING);
+
+        List<OrderDetail> orderDetails = orderRequest.getItems().stream()
+                .map(item -> OrderDetail.builder()
+                        .price(item.getPrice())
+                        .quantity(item.getQuantity())
+                        .upc(item.getUpc())
+                        .tax((item.getPrice() * item.getQuantity()) * Constants.TAX_IMPORTE)
+                        .totalAmount((item.getPrice() * item.getQuantity()))
+                        .order(orderObj).build())
+                .collect(Collectors.toList());
+
+        orderObj.setDetails(orderDetails);
+        orderObj.setTotalAmount(orderDetails.stream().mapToDouble(OrderDetail::getTotalAmount).sum());
+        orderObj.setTotalTax(orderObj.getTotalAmount() * Constants.TAX_IMPORTE);
+        orderObj.setTotalAmountTax(orderObj.getTotalAmount() + orderObj.getTotalTax());
+        orderObj.setTransactionDate(new Date());
+
+        return orderObj;
+    }
+
+    public List<Order> findAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    public Order findOrderById(String orderId) {
+        Optional<Order> order = Optional.ofNullable(orderRepository.findOrderByOrderId(orderId));
+        return order.orElseThrow(() -> new OrderNotFoundException("Order not found"));
+    }
+
+    public Order findById(long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
+    }
+
+    public List<Order> findOrdersByAccountId(String accountId) {
+        Optional<List<Order>> orders = Optional.ofNullable(orderRepository.findOrdersByAccountId(accountId));
+        return orders.orElseThrow(() -> new OrderNotFoundException("Orders were not found"));
+    }
 }

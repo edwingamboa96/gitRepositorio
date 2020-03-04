@@ -13,28 +13,33 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.geekshirt.orderservice.exception.AccountNotFoundException;
 import com.geekshirt.orderservice.exception.IncorrectOrderRequestException;
 import com.geekshirt.orderservice.exception.OrderServiceExceptionResponse;
+import com.geekshirt.orderservice.exception.PaymentNotAcceptedException;
 
 @ControllerAdvice
 @RestController
 public class OrderServiceExceptionHandler extends ResponseEntityExceptionHandler {
-   @ExceptionHandler(Exception.class)
-   public ResponseEntity<Object> handleAllExceptions(Exception exception, WebRequest request) {	
-    	
-       OrderServiceExceptionResponse response = new OrderServiceExceptionResponse(exception.getMessage(), request.getDescription(false), HttpStatus.INTERNAL_SERVER_ERROR, LocalDateTime.now());
-       return new ResponseEntity<>(response, response.getStatus());
-   }
-
-    @ExceptionHandler(IncorrectOrderRequestException.class)
-    public ResponseEntity<Object> handleIncorrectRequest(IncorrectOrderRequestException exception, WebRequest request) {
-        OrderServiceExceptionResponse response = new OrderServiceExceptionResponse(exception.getMessage(), request.getDescription(false), HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @ExceptionHandler(AccountNotFoundException.class)
-    public ResponseEntity<Object> handleResourceNotFound(AccountNotFoundException exception, WebRequest request) {
-        OrderServiceExceptionResponse response = new OrderServiceExceptionResponse(exception.getMessage(), request.getDescription(false), HttpStatus.NOT_FOUND, LocalDateTime.now());
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-   
+//   @ExceptionHandler(Exception.class)
+//   public ResponseEntity<Object> handleAllExceptions(Exception exception, WebRequest request) {	
+//    	
+//       OrderServiceExceptionResponse response = new OrderServiceExceptionResponse(exception.getMessage(), request.getDescription(false), HttpStatus.INTERNAL_SERVER_ERROR, LocalDateTime.now());
+//       return new ResponseEntity<>(response, response.getStatus());
+//   }
+//
+//    @ExceptionHandler(IncorrectOrderRequestException.class)
+//    public ResponseEntity<Object> handleIncorrectRequest(IncorrectOrderRequestException exception, WebRequest request) {
+//        OrderServiceExceptionResponse response = new OrderServiceExceptionResponse(exception.getMessage(), request.getDescription(false), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+//        return new ResponseEntity<>(response, response.getStatus());
+//    }
+//
+//    @ExceptionHandler(AccountNotFoundException.class)
+//    public ResponseEntity<Object> handleResourceNotFound(AccountNotFoundException exception, WebRequest request) {
+//        OrderServiceExceptionResponse response = new OrderServiceExceptionResponse(exception.getMessage(), request.getDescription(false), HttpStatus.NOT_FOUND, LocalDateTime.now());
+//        return new ResponseEntity<>(response, response.getStatus());
+//    }
+//
+//    @ExceptionHandler(PaymentNotAcceptedException.class)
+//    public ResponseEntity<Object> handlePaymentNotAcceptedResourceNotFound(PaymentNotAcceptedException exception, WebRequest request) {
+//        OrderServiceExceptionResponse response = new OrderServiceExceptionResponse(exception.getMessage(), request.getDescription(false), HttpStatus.NOT_FOUND, LocalDateTime.now());
+//        return new ResponseEntity<>(response, response.getStatus());
+//    }
 }

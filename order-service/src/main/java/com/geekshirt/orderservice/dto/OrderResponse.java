@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OrderResponse {
-	private Long id;
+	//private Long id;
 	private String orderId;
 	private String status;
 	private String accountId;

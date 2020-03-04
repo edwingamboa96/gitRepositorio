@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -16,20 +17,24 @@ import com.geekshirt.orderservice.dto.CreditCardDto;
 import com.geekshirt.orderservice.dto.CustomerDto;
 import com.geekshirt.orderservice.util.AccountStatus;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class CustomerServiceClient {
+	private RestTemplate restTemplate;
+
 
 	@Autowired
 	private OrderServiceConfig config;
-	private RestTemplate restTemplate;
-
+	
 	public CustomerServiceClient(RestTemplateBuilder builder) {
 
-		this.restTemplate = builder.build();
+		restTemplate = builder.build();
 	}
 	
 	
-	 public Optional<AccountDto> findAccountById(String accountId) {
+	 public Optional<AccountDto> findAccount(String accountId) {
 	        Optional<AccountDto> result = Optional.empty();
 	        try {
 	            result = Optional.ofNullable(restTemplate.getForObject(config.getCustomerServiceUrl() + "/{id}", AccountDto.class, accountId));
@@ -51,7 +56,7 @@ public class CustomerServiceClient {
 		AddressDto addressDto=AddressDto.builder().street("Carreta 7")
 				.city("Bogota")
 				.state("Bogota")
-				.country("Cololmbia")
+				.country("Colombia")
 				.zipCode("12365")
 				.build();
 		
@@ -84,4 +89,26 @@ public class CustomerServiceClient {
 		return restTemplate.postForObject(config.getCustomerServiceUrl(), accountDto, AccountDto.class);
 		
 	}
+	/////////////
+	
+	 public AccountDto createAccountBody(AccountDto account) {
+	        ResponseEntity<AccountDto> responseAccount = restTemplate.postForEntity(config.getCustomerServiceUrl(),
+	                                                                                account, AccountDto.class);
+	        log.info("Response: " +  responseAccount.getHeaders());
+	        return responseAccount.getBody();
+	    }
+
+	    public void updateAccount(AccountDto account) {
+	        restTemplate.put(config.getCustomerServiceUrl() + "/{id}", account, account.getId());
+	    }
+
+	    public void deleteAccount(AccountDto account) {
+	        restTemplate.delete(config.getCustomerServiceUrl() + "/{id}", account.getId());
+	    }
+	
+	
+	
+	
+	
+	
 }

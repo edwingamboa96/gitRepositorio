@@ -25,23 +25,26 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "ORDER_DETAILS")
-public class OrderDetail {
+public class OrderDetail extends CommonEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Column(name = "QUANTITY")
+    private Integer quantity;
 
-	@Column(name = "QUANTITY")
-	private Integer quantity;
+    @Column(name = "PRICE")
+    private Double price;
 
-	@Column(name = "PRICE")
-	private Double price;
+    @Column(name = "TAX")
+    private Double tax;
 
-	@Column(name = "TAX")
-	private Double tax;
+    @Column(name = "UPC")
+    private String upc;
 
-	@Column(name = "UPC")
-	private String upc;
-	@ManyToOne(cascade = CascadeType.ALL)
-	private Order order;
+    @Column(name = "TOTAL_AMOUNT")
+    private Double totalAmount;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Order order;
 }

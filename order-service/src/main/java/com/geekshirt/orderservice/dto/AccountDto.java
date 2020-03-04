@@ -8,15 +8,11 @@ import lombok.Data;
 @Builder
 @Data
 public class AccountDto {
-	
-	
-	
-	
-	
+
 	private Long id;
-	    private AddressDto address;
-	    private CustomerDto customer;
-	    private CreditCardDto creditCard;
-	    private AccountStatus status;
+	private AddressDto address;
+	private CustomerDto customer;
+	private CreditCardDto creditCard;
+	private AccountStatus status;
 
 }
