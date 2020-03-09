@@ -19,7 +19,7 @@ public class OrderServiceConfig {
 	private String customerServiceUrl;
 	
 
-	@Value("${paymentservice.url")
+	@Value("${paymentservice.url}")
 	private String paymentServiceUrl;
 
 	@Bean
